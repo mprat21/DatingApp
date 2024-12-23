@@ -18,6 +18,9 @@ public class AccountController(DataContext context, ITokenService tokenService) 
     {
 
         if (await UserExists(registerDto.Username)) return BadRequest("Username is taken");
+
+        return Ok();  //just to remove warnings
+       /*
         using var hmac = new HMACSHA512();  // releases all resources used by the class
         var user = new AppUser()
         {
@@ -32,6 +35,8 @@ public class AccountController(DataContext context, ITokenService tokenService) 
             Username = user.UserName,
             Token = tokenService.CreateToken(user)
         };
+
+        */
     }
 
     [HttpPost("login")]
