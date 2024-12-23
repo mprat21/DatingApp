@@ -1,0 +1,43 @@
+.card:hover img {
+    transform: scale(1.2, 1.2);
+    transition-duration: 500ms;
+    transition-timing-function: ease-out;
+}
+
+.card img {
+    transform: scale(1.0, 1.0);
+    transition-duration: 500ms;
+    transition-timing-function: ease-out;
+}
+
+.card-img-wrapper {
+    overflow: hidden;
+    position: relative;
+}
+
+.member-icons {
+    position: absolute;
+    bottom: -30%;
+    /*  as we want to start the icons off the card */
+
+    /*  align the icons into center */
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+
+    opacity: 0;
+    /*to hide the icons by default*/
+
+}
+
+.card-img-wrapper:hover .member-icons {
+    bottom: 0;
+    opacity: 1;
+    /*to make the icons visible again on hover*/
+}
+
+.animate {
+    transition: all 0.3s ease-in-out;
+    /* this will add animation as you see in browser that icons slide in slowly */
+}
