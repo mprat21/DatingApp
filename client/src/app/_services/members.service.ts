@@ -40,13 +40,11 @@ export class MembersService {
   // as we can use the tap from RxJS. Then we make use of update method and then .map helps to iterate over and modify the one that is changed based on username
   updateMember(member: Member) {
     return this.http.put(this.baseURl + 'users', member)
-    .pipe(
-      tap(
-        ()=>{
-            this.members.update(mem => mem.map(m=>m.userName===member.userName?member:m))
-          }
-        )
-    )
+      .pipe(
+        tap(() => {
+          this.members.update(mem => mem.map(m => m.userName === member.userName ? member : m))
+        })
+      )
   }
 
 
