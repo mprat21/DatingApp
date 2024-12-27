@@ -17,8 +17,7 @@ export class AccountService {
     return this.http.post<User>(this.baseUrl + 'account/login', model).pipe(
       map(user => {
         if (user) {
-          localStorage.setItem('user', JSON.stringify(user));
-          this.currentUser.set(user);
+          this.setCurrentUser(user); //called setuser
         }
       }
       )
@@ -30,8 +29,7 @@ export class AccountService {
     return this.http.post<User>(this.baseUrl + 'account/register', model).pipe(
       map(user => {
         if (user) {
-          localStorage.setItem('user', JSON.stringify(user));
-          this.currentUser.set(user);
+          this.setCurrentUser(user);  //called setuser
         }
         return user;
       }
@@ -39,6 +37,11 @@ export class AccountService {
     )
   }
 
+//added new method and moved code from register and login to inside this
+  setCurrentUser(user: User) {
+    localStorage.setItem('user', JSON.stringify(user));
+    this.currentUser.set(user);
+  }
 
   logout() {
     localStorage.removeItem('user');

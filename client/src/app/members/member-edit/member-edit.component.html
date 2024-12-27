@@ -86,7 +86,12 @@
 
             </tab>
             <tab heading="Edit photos">
-                <p>Edit Photos will go here</p>
+                <p>
+
+                    <!-- Step 8: here we call memberChange property emits then onMemberChange() is called -->
+
+                    <app-photo-editor [member]="member" (memberChange)="OnMemberChange($event)"></app-photo-editor>
+                </p>
             </tab>
         </tabset>
 

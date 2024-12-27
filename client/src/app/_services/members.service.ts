@@ -3,6 +3,7 @@ import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Member } from '../_models/member';
 import { of, tap } from 'rxjs';
+import { Photo } from '../_models/photo';
 
 
 @Injectable({
@@ -46,6 +47,52 @@ export class MembersService {
         })
       )
   }
+
+  deletePhoto(photo: Photo) {
+    return this.http.delete(this.baseURl + 'users/delete-photo/' + photo.id).pipe(
+      tap(() => {
+        this.members.update(mem => mem.map(m => {
+          if (m.photos.includes(photo)) { //includes checks if array has the photo in it
+           m.photos = m.photos.filter(x => x.id !== photo.id)  
+            //filter method just keeps the remaining photos that must be 
+            // there in the array and updates and returns the member accordingly so the one photo to be deleted is excluded
+          }
+          return m;
+        }))
+      })
+    )
+  }
+
+
+  setMainPhoto(photo: Photo) {
+    /* setMainPhoto
+    Update the Member's Data Locally:
+    
+    It updates the members array to reflect the change as array is shown when you click on other components, so the array here must also be updated.
+    Here's what happens:
+    It goes through the members array.
+    For each member(m), it checks if the new photo is part of that member's photos.
+    If it is, it sets that photo's url as the member's main photoUrl.
+    UI Updates:
+    
+    By updating the photoUrl of the relevant member, the application ensures that the user's main photo is updated on the screen without 
+    needing a full refresh.
+    In short, this function communicates the new main photo to the server and updates the app's state to show the new photo immediately.
+    
+     */
+    return this.http.put(this.baseURl + 'users/set-main-photo/' + photo.id, {}).pipe(
+      tap(() => {
+        this.members.update(mem => mem.map(m => {
+          if (m.photos.includes(photo)) {
+            m.photoUrl = photo.url
+          }
+          return m;
+        }))
+      }
+      )
+    )
+  }
+
 
 
 }

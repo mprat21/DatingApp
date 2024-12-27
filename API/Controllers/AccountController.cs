@@ -42,7 +42,9 @@ public class AccountController(DataContext context, ITokenService tokenService) 
     [HttpPost("login")]
     public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
     {
-        var user = await context.Users.FirstOrDefaultAsync(x => x.UserName == loginDto.Username.ToLower());
+        var user = await context.Users.
+        Include(p => p.Photos).               //added to get the photos as by default entity framework is lazy and any entity must be mentioned
+        FirstOrDefaultAsync(x => x.UserName == loginDto.Username.ToLower());
         if (user.UserName == null) return Unauthorized("Invalid Username");
         using var hmac = new HMACSHA512(user.PasswordSalt);
         var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
@@ -53,7 +55,8 @@ public class AccountController(DataContext context, ITokenService tokenService) 
         return new UserDto
         {
             Username = user.UserName,
-            Token = tokenService.CreateToken(user)
+            Token = tokenService.CreateToken(user),
+            PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url   //added the photoUrl as well for photo in navbar
         };
     }
 
