@@ -23,7 +23,8 @@
         @if (accountService.currentUser()){
         <div dropdown class="dropdown">
             <!--added the img in navbar -->
-            <img class="me-2" src="{{accountService.currentUser()?.photoUrl}}" alt="user main image">
+            <img class="me-2" src="{{accountService.currentUser()?.photoUrl || './assets/user.png'}}"
+                alt="user main image">
             <a dropdownToggle class="dropdown-toggle text-light text-decoration-none">
                 Welcome {{accountService.currentUser()?.username | titlecase}}</a>
 

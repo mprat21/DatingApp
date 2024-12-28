@@ -1,0 +1,23 @@
+<div class="mb-3 form-floating">
+<!--Step5: we will copy code from register.component.html and modify accordingly-->
+
+
+    <input [class.is-invalid]="control.invalid && control.touched" class="form-control" [formControl]="control"
+        [type]="type()" placeholder="{{label()}}"><!--Step7: we will add [formControl] and pass value of control from ts where we access it using
+        control getter, we will add type() and label() on respective placess and access it using {{}}
+        
+        -->
+
+    <label>{{label()}}</label>
+
+    <div *ngIf="control.hasError('required')" class="invalid-feedback text-start">Please enter
+        your {{label()}}</div>
+    <div *ngIf="control.hasError('minlength')" class="invalid-feedback text-start">{{label()}}
+        must be atleast {{control.errors?.['minlength'].requiredLength}} characters</div>
+<!--Step8: to display minlength use .requiredLength  -->
+        
+    <div *ngIf="control.hasError('maxlength')" class="invalid-feedback text-start">{{label()}}
+        must be atmost {{control.errors?.['maxlength'].requiredLength}} characters</div>
+    <div *ngIf="control.hasError('isMatching')" class="invalid-feedback text-start">Passwords must match</div>
+
+</div>

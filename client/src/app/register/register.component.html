@@ -1,10 +1,37 @@
-<form #registerForm="ngForm" (ngSubmit)="register()" autocomplete="off">
+<!--- Step9: Now will call each controls from here-->
+
+<form [formGroup]="registerForm" (ngSubmit)="register()" autocomplete="off">
     <h2 class="text-center text-primary">Sign up</h2>
     <hr>
-    <div class="mb-3 form-floating">
-        <input type="text" class="form-control" name="username" [(ngModel)]="model.username" placeholder="username">
-        <label>Username</label>
+    <div class="mb-3">
+        <label style="margin-right: 10px;">I am a:</label>
+        <label class="form-check-label">
+            <input type="radio" class="form-check-input" value="male" formControlName="gender"> Male
+        </label>
+        <label class="form-check-label">
+            <input type="radio" class="form-check-input" value="female" formControlName="gender"> Female
+        </label>
     </div>
+
+    <!--Step10: this format of [formControl]="$any()" was used to access each property from form group as otherwise it threw error-->
+    <app-text-input [formControl]="$any(registerForm.controls['username'])" [label]="'Username'">
+    </app-text-input>
+    <app-text-input [formControl]="$any(registerForm.controls['knownAs'])" [label]="'Known as'">
+    </app-text-input>
+
+    <app-date-picker [formControl]="$any(registerForm.controls['dateOfBirth'])" [label]="'Date of birth'"
+        [maxDate]="maxDate">
+    </app-date-picker>
+
+    <app-text-input [formControl]="$any(registerForm.controls['city'])" [label]="'City'">
+    </app-text-input>
+    <app-text-input [formControl]="$any(registerForm.controls['country'])" [label]="'Country'">
+    </app-text-input>
+    <app-text-input [formControl]="$any(registerForm.controls['password'])" [label]="'Password'" [type]="('Password')">
+    </app-text-input>
+    <app-text-input [formControl]="$any(registerForm.controls['confirmPassword'])" [label]="'Confirm password'"
+        [type]="('Password')">
+    </app-text-input>
 
     <!--  becuase of [value], user.userName is treated like expression, value is sent to server
                  options - displayed text....if value is omitted, the displayed text is used as value -->
@@ -28,14 +55,24 @@
     </div> 
     -->
 
-    <div class="mb-3 form-floating">
-
-        <input type="password" class="form-control" name="password" [(ngModel)]="model.password" placeholder="password">
-        <label>Password</label>
+    <!--Step5: print validation error in here-->
+    @if(validationErrors){
+    <div class="alert alert-danger text-start">
+        <ul>
+            @for (error of validationErrors; track $index) {
+            <li>{{error}}</li>
+            }
+        </ul>
     </div>
 
+
+    }
+
     <div class="form-group text-center">
-        <button class="btn btn-success me-2" type="submit">Register</button>
+
+        <!--Step9: until proper input is not provied the register form should be disabled-->
+
+        <button [disabled]="!registerForm.valid" class="btn btn-success me-2" type="submit">Register</button>
         <button class="btn btn-default me-2" type="button" (click)="cancel()">Cancel</button>
     </div>
 </form>

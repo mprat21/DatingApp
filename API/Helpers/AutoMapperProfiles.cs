@@ -16,6 +16,8 @@ public class AutoMapperProfiles : Profile
 
         CreateMap<Photo, PhotoDto>();
         CreateMap<MemberUpdateDto, AppUser>();
+        CreateMap<RegisterDto, AppUser>();    // we pass this to copy registerdto fields into apuser
+        CreateMap<String, DateOnly>().ConvertUsing(s => DateOnly.Parse(s)); //we pass this to convert & copy string to date type
 
     }
 }

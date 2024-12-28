@@ -54,16 +54,16 @@ export class PhotoEditorComponent implements OnInit {
           user.photoUrl = photo.url;  // so we pass the currently selected url as current photo url of user for immediate effect
           this.accountService.setCurrentUser(user); //then set it as current user so its set at account service level in nav bar
         }
-        const updatedUser = { ...this.member() };  //we copy all things from current member into a variable
-        updatedUser.photoUrl = photo.url;  //do changes in photo url of user for this new variable
-        updatedUser.photos.forEach(p => { //however photo is itself an entity inside user entity, we have iterate and check
+        const updatedMember = { ...this.member() };  //we copy all things from current member into a variable
+        updatedMember.photoUrl = photo.url;  //do changes in photo url of user for this new variable
+        updatedMember.photos.forEach(p => { //however photo is itself an entity inside user entity, we have iterate and check
           // which id of photos in array matches to one user selected if match is found then set main prop to true
 
           if (p.isMain) p.isMain = false;
           if (p.id === photo.id) p.isMain = true;
         });
 
-        this.memberChange.emit(updatedUser); //then we pass to child component 
+        this.memberChange.emit(updatedMember); //then we pass to child component 
 
       }
     })
@@ -97,12 +97,30 @@ export class PhotoEditorComponent implements OnInit {
       const photo = JSON.parse(response);
       //{ ...this.member() }: The spread operator (...) copies all enumerable own properties of the object returned by this.member() into a new object. 
 
-      const updatedMember = { ...this.member() };       // This ensures that updatedMember is a new object and not a reference to the original.
+      const updatedMember = { ...this.member() };
 
       updatedMember.photos.push(photo);
       this.memberChange.emit(updatedMember);
 
-      //for step7: because we want original member component to be updated, we must update the parent component which will eventually update child component
+
+
+      //Step12: here we check is isMain is true then we would need to update the nav bar image with the main photo, also the updatedMember array 
+      // must be updated to have photo url of main. As photos is an object inside member, it would have array of photos and we must also iterate over 
+      // and  if the array has a photo that is main then we make it false and set requested photo as main when the photos have same id.
+      if (photo.isMain) {
+        const user = this.accountService.currentUser();
+        if (user) {
+          user.photoUrl = photo.url;
+          this.accountService.setCurrentUser(user);
+        }
+        updatedMember.photoUrl = photo.url;
+        updatedMember.photos.forEach(p => {
+          if (p.isMain) p.isMain = false;
+          if (p.id === photo.id) p.isMain = true;
+        });
+        this.memberChange.emit(updatedMember);
+      }
+
     }
   }
 
