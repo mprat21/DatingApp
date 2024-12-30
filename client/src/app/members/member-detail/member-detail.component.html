@@ -15,11 +15,12 @@
                 </div>
                 <div>
                     <strong>Last Active:</strong>
-                    <p>{{member.lastActive}}</p>
+                    <p>{{member.lastActive| timeago}}</p> <!-- added timeago pipe for setting now, 1day ago etc -->
                 </div>
                 <div>
-                    <strong>Member Since::</strong>
-                    <p>{{member.created}}</p>
+                    <strong>Member Since:</strong>
+                    <p>{{member.created | date: 'dd MMM YYYY' }}</p>
+                    <!-- added particular date format for created date -->
                 </div>
             </div>
             <div class="card-footer">
@@ -50,7 +51,7 @@
 
             <tab heading="Photos" #photoTab="tab">
                 @if (photoTab.active) {
-                    <!---add here [itemAutosize] to remove black background and better look-->
+                <!---add here [itemAutosize] to remove black background and better look-->
                 <gallery [items]="images" class="gallery" [itemAutosize]="true">
 
                 </gallery>

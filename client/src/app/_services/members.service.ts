@@ -1,9 +1,12 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Member } from '../_models/member';
 import { of, tap } from 'rxjs';
 import { Photo } from '../_models/photo';
+import { PaginatedResult } from '../_models/pagination';
+import { UserParams } from '../_models/userParams';
+import { AccountService } from './account.service';
 
 
 @Injectable({
@@ -12,54 +15,99 @@ import { Photo } from '../_models/photo';
 export class MembersService {
   private http = inject(HttpClient);
   baseURl = environment.apiUrl;
-  members = signal<Member[]>([]);
+  memberCache = new Map();
+  paginatedResult = signal<PaginatedResult<Member[]> | null>(null);
+
+  //step1: use account service and get current user 
+  private accountService = inject(AccountService);
+  user = this.accountService.currentUser();
+
+  //step2: then we create userparam a signal of type userparams and then pass current user object to it
+  userParams = signal<UserParams>(new UserParams(this.user))
+
+
+  //step3: we now create a new method to reset userParams 
+  resetUserParams() {
+    this.userParams.set(new UserParams(this.user));
+  }
+
+
+
+  private setPaginatedResponse(response: HttpResponse<Member[]>) {
+    this.paginatedResult.set({
+      items: response.body as Member[],
+      pagination: JSON.parse(response.headers.get('Pagination')!)
+    })
+  }
 
   getMembers() {
-    return this.http.get<Member[]>(this.baseURl + 'users').subscribe({
-      next: members => {
-        this.members.set(members)          //we will store the members so the state is stored
+    const response = this.memberCache.get(Object.values(this.userParams()).join('-'))
+
+    if (response) return this.setPaginatedResponse(response); //if memberCache is already having members then just return those values
+
+    let params = this.setPaginationHeaders(this.userParams().pageNumber, this.userParams().pageSize);
+    params = params.append('minAge', this.userParams().minAge);
+    params = params.append('maxAge', this.userParams().maxAge);
+    params = params.append('gender', this.userParams().gender);
+    params = params.append('orderBy', this.userParams().orderBy); //added this to order by last active or latest created
+
+    return this.http.get<Member[]>(this.baseURl + 'users', { observe: 'response', params }).subscribe({
+      next: response => {
+        this.setPaginatedResponse(response);
+        this.memberCache.set(Object.values(this.userParams()).join('-'), response);
+        //we are setting the cache so when we move back and forth we dont need to call API
       }
     })
   }
 
-  getMember(username: string) {
 
-    //to get store the state for objects based on username we will find first if the member exists using find and 
-    // then if its not undefined we will return as observable using of(member) 
+  private setPaginationHeaders(pageNumber: number, pageSize: number) {
+    let params = new HttpParams();
+    //here we are creating query params to pass pagenumber and pasgesize
 
-    const member = this.members().find(x => (x.userName === username));
-
-    if (member !== undefined)
-      return of(member);
-
-    return this.http.get<Member>(this.baseURl + 'users/' + username);
+    if (pageNumber && pageSize) {
+      params = params.append('pageNumber', pageNumber);
+      params = params.append('pageSize', pageSize);
+    }
+    return params;
   }
 
 
-  //here we add the pipe as we work on observables and then using tap which is RxJS operator 
-  // we can use it if we want to use a side effect with our observable, but we don't want to change or transform its value in any way, 
-  // as we can use the tap from RxJS. Then we make use of update method and then .map helps to iterate over and modify the one that is changed based on username
+
+
+  //so first we shallow copy members.values in array and then with help of reduce just try making an array within array to flat array kind of
+  // so second array say elem's body will concat first array arr on empty array and then we iterate over 
+  // and find member whose username matches to what username is passed
+  getMember(username: string) {
+
+    const member: Member = [...this.memberCache.values()]
+      .reduce((arr, elem) => arr.concat(elem.body), [])
+      .find((m: Member) => m.userName === username);
+    if (member) return of(member);
+    return this.http.get<Member>(this.baseURl + 'users/' + username);
+  }
+
   updateMember(member: Member) {
     return this.http.put(this.baseURl + 'users', member)
       .pipe(
-        tap(() => {
-          this.members.update(mem => mem.map(m => m.userName === member.userName ? member : m))
-        })
-      )
+      /* tap(() => {
+        this.members.update(mem => mem.map(m => m.userName === member.userName ? member : m))
+      })*/
+    )
   }
 
   deletePhoto(photo: Photo) {
     return this.http.delete(this.baseURl + 'users/delete-photo/' + photo.id).pipe(
-      tap(() => {
-        this.members.update(mem => mem.map(m => {
-          if (m.photos.includes(photo)) { //includes checks if array has the photo in it
-           m.photos = m.photos.filter(x => x.id !== photo.id)  
-            //filter method just keeps the remaining photos that must be 
-            // there in the array and updates and returns the member accordingly so the one photo to be deleted is excluded
-          }
-          return m;
-        }))
-      })
+      /*  tap(() => {
+         this.members.update(mem => mem.map(m => {
+           if (m.photos.includes(photo)) { //includes checks if array has the photo in it
+            m.photos = m.photos.filter(x => x.id !== photo.id)  
+             //filter method just keeps the remaining photos that must be 
+             // there in the array and updates and returns the member accordingly so the one photo to be deleted is excluded
+           }
+           return m;
+         }))
+       }) */
     )
   }
 
@@ -81,7 +129,7 @@ export class MembersService {
     
      */
     return this.http.put(this.baseURl + 'users/set-main-photo/' + photo.id, {}).pipe(
-      tap(() => {
+      /* tap(() => {
         this.members.update(mem => mem.map(m => {
           if (m.photos.includes(photo)) {
             m.photoUrl = photo.url
@@ -89,7 +137,7 @@ export class MembersService {
           return m;
         }))
       }
-      )
+      ) */
     )
   }
 
