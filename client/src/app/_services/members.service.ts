@@ -7,6 +7,7 @@ import { Photo } from '../_models/photo';
 import { PaginatedResult } from '../_models/pagination';
 import { UserParams } from '../_models/userParams';
 import { AccountService } from './account.service';
+import { setPaginatedResponse, setPaginationHeaders } from './paginationHelper';
 
 
 @Injectable({
@@ -32,20 +33,12 @@ export class MembersService {
   }
 
 
-
-  private setPaginatedResponse(response: HttpResponse<Member[]>) {
-    this.paginatedResult.set({
-      items: response.body as Member[],
-      pagination: JSON.parse(response.headers.get('Pagination')!)
-    })
-  }
-
   getMembers() {
     const response = this.memberCache.get(Object.values(this.userParams()).join('-'))
 
-    if (response) return this.setPaginatedResponse(response); //if memberCache is already having members then just return those values
+    if (response) return setPaginatedResponse(response, this.paginatedResult); //if memberCache is already having members then just return those values
 
-    let params = this.setPaginationHeaders(this.userParams().pageNumber, this.userParams().pageSize);
+    let params = setPaginationHeaders(this.userParams().pageNumber, this.userParams().pageSize);
     params = params.append('minAge', this.userParams().minAge);
     params = params.append('maxAge', this.userParams().maxAge);
     params = params.append('gender', this.userParams().gender);
@@ -53,7 +46,7 @@ export class MembersService {
 
     return this.http.get<Member[]>(this.baseURl + 'users', { observe: 'response', params }).subscribe({
       next: response => {
-        this.setPaginatedResponse(response);
+        setPaginatedResponse(response, this.paginatedResult);
         this.memberCache.set(Object.values(this.userParams()).join('-'), response);
         //we are setting the cache so when we move back and forth we dont need to call API
       }
@@ -61,16 +54,7 @@ export class MembersService {
   }
 
 
-  private setPaginationHeaders(pageNumber: number, pageSize: number) {
-    let params = new HttpParams();
-    //here we are creating query params to pass pagenumber and pasgesize
 
-    if (pageNumber && pageSize) {
-      params = params.append('pageNumber', pageNumber);
-      params = params.append('pageSize', pageSize);
-    }
-    return params;
-  }
 
 
 

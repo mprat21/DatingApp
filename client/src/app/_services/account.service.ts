@@ -3,12 +3,13 @@ import { inject, Injectable, signal } from '@angular/core';
 import { map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { User } from '../_models/user';
+import { LikesService } from './likes.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AccountService {
-
+  private likeService = inject(LikesService); //step2: inject like service
   private http = inject(HttpClient);
   baseUrl = environment.apiUrl;
   currentUser = signal<User | null>(null)
@@ -37,10 +38,10 @@ export class AccountService {
     )
   }
 
-//added new method and moved code from register and login to inside this
   setCurrentUser(user: User) {
     localStorage.setItem('user', JSON.stringify(user));
     this.currentUser.set(user);
+    this.likeService.getLikesId();//step3: set the like ids in current user 
   }
 
   logout() {

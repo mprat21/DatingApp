@@ -24,7 +24,8 @@ export class AppComponent implements OnInit {
     const userString = localStorage.getItem('user');
     if (!userString) return;
     const user = JSON.parse(userString);
-    this.accountService.currentUser.set(user);
+    this.accountService.setCurrentUser(user); //step4: set current user so likes also is set when page is refreshed
+
 
   }
 
